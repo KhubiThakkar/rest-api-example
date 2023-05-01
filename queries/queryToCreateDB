@@ -1,0 +1,61 @@
+CREATE TABLE person (
+  id BIGSERIAL NOT NULL PRIMARY KEY,
+  first_name VARCHAR(50) NOT NULL,
+  last_name VARCHAR(50) NOT NULL,
+  email VARCHAR(100) NOT NULL,
+  mobile_number VARCHAR(10) NOT NULL,
+  birth_date DATE
+);
+
+
+-- query to ensure the mobile number is:
+-- 1. 10 digits long
+-- 2. Unique
+-- 3. Contains only numbers
+ALTER TABLE person
+ADD CONSTRAINT mobile_number_constraint UNIQUE (mobile_number),
+ADD CONSTRAINT mobile_number_format_constraint CHECK (
+  length(mobile_number) = 10 AND
+  mobile_number ~ '^[0-9]+$');
+
+
+-- query to ensure the email is:
+-- 1. Unique
+-- 2. Valid format
+ALTER TABLE person
+ADD CONSTRAINT email_format_constraint CHECK (
+    email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+),
+ADD CONSTRAINT email_unique_constraint UNIQUE (email);
+
+-- query to create ADDRESS table
+CREATE TABLE address (
+  id BIGSERIAL NOT NULL PRIMARY KEY,
+  address_line_1 VARCHAR(100) NOT NULL,
+  address_line_2 VARCHAR(100),
+  pincode VARCHAR(6) NOT NULL,
+  city VARCHAR(50) NOT NULL,
+  state VARCHAR(50) NOT NULL,
+  type VARCHAR(10) NOT NULL,
+  person_id INTEGER NOT NULL
+);
+
+
+-- constraint for TYPE = Home/ Office
+ALTER TABLE address ADD CONSTRAINT type_constraint CHECK (LOWER(type)='home' OR LOWER(type)='office');
+
+-- insert query for the data
+INSERT INTO address (address_line_1, address_line_2, pincode, city, state, type, person_id) VALUES ('bbahdak nslkal', 'bsdjkank bajdnk', 9851, 'vadodara', 'gujarat', 'home', 5);
+
+-- constraint for PINCODE length should be between 4 and 6
+ALTER TABLE address ADD CONSTRAINT pincode_constraint CHECK (
+  length(pincode) > 3 AND 
+  length(pincode) < 7 AND
+  pincode ~ '^[0-9]+$');
+
+-- constraint for adding the FOREIGN KEY in ADDRESS table referencing the PERSON table
+-- the entry will be deleted in the ADDRESS table when the corresponding entry in PERSON table is deleted
+ALTER TABLE address ADD CONSTRAINT fk_user_id 
+  FOREIGN KEY (person_id) 
+  REFERENCES person(id)
+  ON DELETE CASCADE;
